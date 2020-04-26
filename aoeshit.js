@@ -103,6 +103,7 @@ module.exports = new Plugin({
                 this.circle.style.opacity = 1;
                 this.circle.style.display = 'block';
                 this.setCircle(false, this.x, this.y)
+                this.highlight();
                 switch(mode) {
                     case 'delete':
                         this.circle.style.filter = "hue-rotate(-213deg)";
