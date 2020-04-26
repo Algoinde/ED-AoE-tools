@@ -32,7 +32,7 @@ module.exports = new Plugin({
 			}
 
 			#aoe_circle:before {
-				content: "";
+				content: attr(data-time);
 				display: block;
 				position: absolute;
 				top: 0;
@@ -42,6 +42,14 @@ module.exports = new Plugin({
 				will-change: transform;
 				background: url(//algoinde.ru/f/aoe.png) 0% 0% / contain no-repeat;
 				animation: rotat 18s infinite linear;
+				display: flex;
+				align-items: center;
+				padding: 0 0 66% 0;
+				justify-content: center;
+				color: white;
+				text-shadow: 0px 0px 10px #005aff, 0px 0px 3px #2590ec, 0px 0px 6px #28bef7, 0px 0px 10px #21a9ea;
+				font-family: cursive;
+				font-size: 4rem;
 			}
 
 			#aoe_circle:after {
@@ -50,8 +58,8 @@ module.exports = new Plugin({
 				position: absolute;
 				top: 50%;
 				left: 50%;
-				width: 60px;
-				height: 80px;
+				width: 100px;
+				height: 100px;
 				transform: translate3d(-50%,-50%,0);
 				pointer-events: all;
 			}
@@ -74,14 +82,26 @@ module.exports = new Plugin({
 			}
 
 			.aoe-active .delete {
-				text-shadow: 2px 1px 2px rgba(200,0,0,1), -2px -1px 2px rgba(200,0,0,1);
+				text-shadow: 1px 1px 4px rgba(200,0,0,1), -1px -1px 4px rgba(200,0,0,1), 1px 1px 4px rgba(200,0,0,1), -1px -1px 4px rgba(200,0,0,1);
 				opacity: 0.5;
 			}
 			.tobedel {
 				background-color: rgba(100,0,0,0.5);
 			}
 			.aoe-active .get-md {
-				text-shadow: 1px 1px 2px rgba(0,30,200,1), -1px -1px 2px rgba(0,30,200,1);
+				text-shadow: 1px 1px 4px rgba(0,30,200,1), -1px -1px 4px rgba(0,30,200,1), 1px 1px 4px rgba(0,30,200,1), -1px -1px 4px rgba(0,30,200,1);
+				opacity: 0.6;
+			}
+			.aoe-active .mute {
+				text-shadow: 1px 1px 4px rgba(203,6,239,1), -1px -1px 4px rgba(203,6,239,1), 1px 1px 4px rgba(203,6,239,1), -1px -1px 4px rgba(203,6,239,1);
+				opacity: 0.6;
+			}
+			.aoe-active .unmute {
+				text-shadow: 1px 1px 4px rgba(0,200,0,1), -1px -1px 4px rgba(0,200,0,1), 1px 1px 4px rgba(0,200,0,1), -1px -1px 4px rgba(0,200,0,1);
+				opacity: 0.6;
+			}
+			.aoe-active .ban {
+				text-shadow: 1px 1px 4px rgba(50,0,0,1), -1px -1px 4px rgba(50,0,0,1), 1px 1px 4px rgba(50,0,0,1), -1px -1px 4px rgba(50,0,0,1);
 				opacity: 0.6;
 			}
 			`;
@@ -92,11 +112,13 @@ module.exports = new Plugin({
 		this.cM = window.EDApi.findModule('getChannelId');
 		this.dM = window.EDApi.findModule('deleteMessage');
 		this.ewM = window.EDApi.findModule('embedWrapper');
+		this.sM = window.EDApi.findModule('sendMessage');
 		this.chatContentClass = '.'+window.EDApi.findModule('chatContent').chatContent;
 		this.messageClass = '.' + window.EDApi.findModule('cozyMessage').cozyMessage;
 		if (!this.cM || !this.dM || !this.ewM) {
 			return this.error('Aborted loading - Failed to find required modules!');
 		}
+		this.muteDuration = 10;
 
 	   this.toggleCircle = (mode, force) => {
 			if(!this.active || force) {
@@ -106,6 +128,7 @@ module.exports = new Plugin({
 				this.circle.style.opacity = 1;
 				this.circle.style.display = 'block';
 				this.setCircle(false, this.x, this.y)
+				this.circle.setAttribute('data-time', '');
 				this.highlight();
 				switch(mode) {
 					case 'delete':
@@ -113,6 +136,16 @@ module.exports = new Plugin({
 						break;
 					case 'get-md':
 						this.circle.style.filter = "hue-rotate(10deg)";
+						break;
+					case 'mute':
+						this.circle.style.filter = "hue-rotate(80deg)";
+						this.circle.setAttribute('data-time', '10');
+						break;
+					case 'unmute':
+						this.circle.style.filter = "hue-rotate(80deg) invert()";
+						break;
+					case 'ban':
+						this.circle.style.filter = "invert() brightness(0.1)";
 						break;
 					default:
 						this.circle.style.filter = "";
@@ -135,6 +168,22 @@ module.exports = new Plugin({
 					this.toggleCircle('delete', this.mode !== 'delete' && this.active);
 				if (e.keyCode == 83 && e.ctrlKey)
 					this.toggleCircle('get-md', this.mode !== 'get-md' && this.active);
+				if (e.keyCode == 77 && e.ctrlKey)
+					this.toggleCircle('mute', this.mode !== 'mute' && this.active);
+				if (e.keyCode == 85 && e.ctrlKey)
+					this.toggleCircle('unmute', this.mode !== 'unmute' && this.active);
+				if (e.keyCode == 89 && e.ctrlKey)
+					this.toggleCircle('ban', this.mode !== 'ban' && this.active);
+				if(this.mode == 'mute' && +e.key > -1 && +e.key < 10) {
+					if(this.keyBounce)
+						this.muteDuration += '' + e.key;
+					else
+						this.muteDuration = e.key;
+					clearTimeout(this.keyBounce);
+					this.keyBounce = setTimeout(() => this.keyBounce = null, 1000);
+					this.circle.setAttribute('data-time', this.muteDuration);
+					e.preventDefault();
+				}
 				if (e.ctrlKey) {
 					if(!this.mouseListened) document.addEventListener("mousemove", this.moveListener);
 					this.mouseListened = true;
@@ -151,6 +200,18 @@ module.exports = new Plugin({
 
 		this.clickListener = (e) => {
 			if(this.active) {
+				if(this.mode == 'ban') {
+					if(!this.banConfirmation)
+						this.banConfirmation = 1;
+					else
+						this.banConfirmation++;
+					if(this.banConfirmation < 3){
+						e.preventDefault();
+						return;
+					}else{
+						this.banConfirmation = 0;
+					}
+				}
 				this.applyAction();
 				e.preventDefault();
 			}
@@ -158,9 +219,9 @@ module.exports = new Plugin({
 		this.wheeListener = (e) => {
 			if(this.ctrl) {
 				if (event.deltaY < 0) {
-					this.setCircle(+this.getCircle().scale + 0.07);
+					this.setCircle(+this.getCircle().scale * 1.07);
 				}else if(event.deltaY > 0){
-					this.setCircle(+this.getCircle().scale - 0.07);
+					this.setCircle(+this.getCircle().scale * 0.93);
 				}
 				setTimeout(this.highlight.bind(this), 100);
 				e.preventDefault();
@@ -178,7 +239,7 @@ module.exports = new Plugin({
 
 		this.highlight = () => {
 			if(!this.messageDebounce) {
-		var classList = ['delete', 'get-md']
+		var classList = ['delete', 'get-md', 'mute', 'unmute', 'ban']
 			var prevArray = this.messageArray;
 				this.messageArray = Array.prototype.slice.call(this.getMessages(true));
 				if(prevArray){
@@ -265,24 +326,18 @@ module.exports = new Plugin({
 			function shuffle(array) {
 				return array.sort(() => Math.random() - 0.5);
 			}
-			var ids = this.getMessages(true);
+			let ids = this.getMessages(true);
+			let channelId = this.cM.getChannelId();
 			switch(this.mode) {
 				case 'delete':
 					ids = shuffle(ids);
-					const channelId = this.cM.getChannelId();
 					if (!channelId) return;
-				var Functerino = function(self, id, channelId) {
-						this.self = self;
-						this.id = id;
-						this.channelId = channelId;
-						this.main = () => {
-							this.self.dM.deleteMessage(this.channelId, this.id);
-						}
-					}
-					for (var i = 0; i < ids.length; i++) {
-						ids[i].classList.add('tobedel');
-						setTimeout((new Functerino(this,ids[i].__reactInternalInstance$.memoizedProps.id,channelId)).main, i*350)
-					}
+					ids.forEach((item, i) => {
+						item.classList.add('tobedel');
+						setTimeout(() => {
+							this.dM.deleteMessage(channelId, item.__reactInternalInstance$.memoizedProps.id)
+						}, i*350)
+					})
 					break;
 				case 'get-md':
 				var string = '';
@@ -291,6 +346,42 @@ module.exports = new Plugin({
 						string += ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.content;
 					}
 					navigator.clipboard.writeText(string);
+					break;
+				case 'mute':
+				var users = [];
+					for (var i = 0; i < ids.length; i++) {
+						if(!users.includes(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id))
+							users.push(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id);
+					}
+					users.forEach((item, i) => {
+						setTimeout(() => {
+							this.sM.sendMessage(channelId, {content: `.mute ${item} ${this.muteDuration}m AoE-muted`})
+						}, i*350)
+					})
+					break;
+				case 'unmute':
+				var users = [];
+					for (var i = 0; i < ids.length; i++) {
+						if(!users.includes(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id))
+							users.push(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id);
+					}
+					users.forEach((item, i) => {
+						setTimeout(() => {
+							this.sM.sendMessage(channelId, {content: `.unmute ${item}`})
+						}, i*350)
+					})
+					break;
+				case 'ban':
+				var users = [];
+					for (var i = 0; i < ids.length; i++) {
+						if(!users.includes(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id))
+							users.push(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id);
+					}
+					users.forEach((item, i) => {
+						setTimeout(() => {
+							this.sM.sendMessage(channelId, {content: `.ban ${item} AoE ban`})
+						}, i*350)
+					})
 					break;
 			}
 			this.toggleCircle();
