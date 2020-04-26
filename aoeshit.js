@@ -98,8 +98,8 @@ module.exports = new Plugin({
 			return this.error('Aborted loading - Failed to find required modules!');
 		}
 
-	   this.toggleCircle = (mode) => {
-			if(!this.active) {
+	   this.toggleCircle = (mode, force) => {
+			if(!this.active || force) {
 				this.active = true;
 				this.mode = mode;
 				document.body.classList.add('aoe-active');
@@ -132,9 +132,9 @@ module.exports = new Plugin({
 		this.keyListener = (e) => {
 			if(e.type == 'keydown') {
 				if (e.keyCode == 68 && e.ctrlKey)
-					this.toggleCircle('delete');
+					this.toggleCircle('delete', this.mode !== 'delete' && this.active);
 				if (e.keyCode == 83 && e.ctrlKey)
-					this.toggleCircle('get-md');
+					this.toggleCircle('get-md', this.mode !== 'get-md' && this.active);
 				if (e.ctrlKey) {
 					if(!this.mouseListened) document.addEventListener("mousemove", this.moveListener);
 					this.mouseListened = true;
