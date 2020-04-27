@@ -82,6 +82,14 @@ module.exports = new Plugin({
 					transform: rotate(390deg);
 				}
 			}
+			@keyframes rotat2 {
+				0% {
+					transform: translate3d(-50%, -50%, 0) rotate(30deg);
+				}
+				100% {
+					transform: translate3d(-50%, -50%, 0) rotate(390deg);
+				}
+			}
 			
 			.aoe-active div[class*="cozyMessage"] {
 				transition: text-shadow 0.2s ease, opacity 0.2s ease;
@@ -118,6 +126,10 @@ module.exports = new Plugin({
 				text-shadow: 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1), 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1);
 				opacity: 0.6;
 			}
+			.aoe-active[data-aoe-mode="smug"] #aoe_circle:after {
+				background: url(https://cdn.discordapp.com/emojis/643603380748419085.png?v=1) 50% 50% / contain no-repeat;
+				animation: rotat2 18s infinite linear reverse;
+			}
 			.aoe-active .dereact {
 				text-shadow: 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1), 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1);
 				opacity: 0.6;
@@ -138,12 +150,14 @@ module.exports = new Plugin({
 			return this.error('Aborted loading - Failed to find required modules!');
 		}
 		this.muteDuration = 10;
+		this.classList = ['delete', 'get-md', 'mute', 'unmute', 'ban', 'smug', 'dereact']
 
 	   this.toggleCircle = (mode, force) => {
 			if(!this.active || force) {
 				this.active = true;
 				this.mode = mode;
 				document.body.classList.add('aoe-active');
+				document.body.setAttribute('data-aoe-mode',this.mode); 
 				this.circle.style.opacity = 0.7;
 				this.circle.style.display = 'block';
 				this.setCircle(false, this.x, this.y)
@@ -182,6 +196,7 @@ module.exports = new Plugin({
 				document.removeEventListener("mousemove", this.moveListener);
 				this.mouseListened = false;
 				document.body.classList.remove('aoe-active');
+				document.body.setAttribute('data-aoe-mode',"");
 				this.active = false;
 				setTimeout(() => this.circle.style.display = 'none', 100);
 			}
@@ -268,22 +283,21 @@ module.exports = new Plugin({
 
 		this.highlight = () => {
 			if(!this.messageDebounce) {
-		var classList = ['delete', 'get-md', 'mute', 'unmute', 'ban', 'smug', 'dereact']
 			var prevArray = this.messageArray;
 				this.messageArray = Array.prototype.slice.call(this.getMessages(true));
 				if(prevArray){
 				var leftovers = prevArray.filter(value => !this.messageArray.includes(value));
 					leftovers.forEach(item => {
-						item.classList.remove(...classList);
+						item.classList.remove(...this.classList);
 					});
 				}
 				this.messageArray.forEach(item => {
-					item.classList.remove(...classList);
+					item.classList.remove(...this.classList);
 					item.classList.add(this.mode);
 					if(item.timerino) {
 						clearTimeout(item.timerino);
 					}
-					item.timerino = setTimeout(() => item.classList.remove(...classList), 4000);
+					item.timerino = setTimeout(() => item.classList.remove(...this.classList), 4000);
 				})
 			}
 			this.messageDebounce = true;
