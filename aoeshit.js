@@ -397,8 +397,8 @@ module.exports = new Plugin({
 						'unmute': (userID) => `.unmute ${userID} AoE-muted`,
 						'ban': (userID) => `.ban ${userID} AoE-banned`
 					})[this.mode];
-					([...new Set(ids)]).forEach((userID, i) => {
-							userID = userID.__reactInternalInstance$.memoizedProps.children[1].props.message.author.id
+					([...new Set(ids.map(userID => userID.__reactInternalInstance$.memoizedProps.children[1].props.message.author.id))])
+						.forEach((userID, i) => {
 							setTimeout(() => {
 								this.sM.sendMessage(channelId, {content: message(userID)})
 							}, i*350)
