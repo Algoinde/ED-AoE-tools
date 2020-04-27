@@ -19,7 +19,17 @@ module.exports = new Plugin({
 			this.circle.id = 'aoe_circle';
 			this.circle.style.transform = "translateX(0px) translateY(0px) scale(0.5)";
 		let style = document.createElement('style');
-			style.innerHTML = `#aoe_circle {
+			style.innerHTML = `
+			/* latin */
+			@font-face {
+			  font-family: 'Rock Salt';
+			  font-style: normal;
+			  font-weight: 400;
+			  font-display: swap;
+			  src: local('Rock Salt Regular'), local('RockSalt-Regular'), url(https://fonts.gstatic.com/s/rocksalt/v10/MwQ0bhv11fWD6QsAVOZrt0M6.woff2) format('woff2');
+			  unicode-range: U+0030-0039;
+			}
+			#aoe_circle {
 				top: 0;
 				left: 0;
 				position: fixed;
@@ -48,7 +58,7 @@ module.exports = new Plugin({
 				justify-content: center;
 				color: white;
 				text-shadow: 0px 0px 10px #005aff, 0px 0px 3px #2590ec, 0px 0px 6px #28bef7, 0px 0px 10px #21a9ea;
-				font-family: cursive;
+				font-family: 'Rock Salt';
 				font-size: 4rem;
 			}
 
@@ -89,7 +99,7 @@ module.exports = new Plugin({
 				background-color: rgba(100,0,0,0.5);
 			}
 			.aoe-active .get-md {
-				text-shadow: 1px 1px 4px rgba(0,30,200,1), -1px -1px 4px rgba(0,30,200,1), 1px 1px 4px rgba(0,30,200,1), -1px -1px 4px rgba(0,30,200,1);
+				text-shadow: 1px 1px 4px rgba(0,120,255,1), -1px -1px 4px rgba(0,120,255,1), 1px 1px 4px rgba(0,120,255,1), -1px -1px 4px rgba(0,120,255,1);
 				opacity: 0.6;
 			}
 			.aoe-active .mute {
@@ -104,6 +114,14 @@ module.exports = new Plugin({
 				text-shadow: 1px 1px 4px rgba(50,0,0,1), -1px -1px 4px rgba(50,0,0,1), 1px 1px 4px rgba(50,0,0,1), -1px -1px 4px rgba(50,0,0,1);
 				opacity: 0.6;
 			}
+			.aoe-active .smug {
+				text-shadow: 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1), 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1);
+				opacity: 0.6;
+			}
+			.aoe-active .dereact {
+				text-shadow: 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1), 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1);
+				opacity: 0.6;
+			}
 			`;
 			document.body.appendChild(style);
 			this.circle = document.body.appendChild(this.circle);
@@ -113,6 +131,7 @@ module.exports = new Plugin({
 		this.dM = window.EDApi.findModule('deleteMessage');
 		this.ewM = window.EDApi.findModule('embedWrapper');
 		this.sM = window.EDApi.findModule('sendMessage');
+		this.reactionModule = EDApi.findModule('addReaction');
 		this.chatContentClass = '.'+window.EDApi.findModule('chatContent').chatContent;
 		this.messageClass = '.' + window.EDApi.findModule('cozyMessage').cozyMessage;
 		if (!this.cM || !this.dM || !this.ewM) {
@@ -125,7 +144,7 @@ module.exports = new Plugin({
 				this.active = true;
 				this.mode = mode;
 				document.body.classList.add('aoe-active');
-				this.circle.style.opacity = 1;
+				this.circle.style.opacity = 0.7;
 				this.circle.style.display = 'block';
 				this.setCircle(false, this.x, this.y)
 				this.circle.setAttribute('data-time', '');
@@ -146,6 +165,12 @@ module.exports = new Plugin({
 						break;
 					case 'ban':
 						this.circle.style.filter = "invert() brightness(0.1)";
+						break;
+					case 'smug':
+						this.circle.style.filter = "saturate(0) brightness(1.6)";
+						break;
+					case 'dereact':
+						this.circle.style.filter = "invert() saturate(0.2) brightness(1.6)";
 						break;
 					default:
 						this.circle.style.filter = "";
@@ -174,6 +199,10 @@ module.exports = new Plugin({
 					this.toggleCircle('unmute', this.mode !== 'unmute' && this.active);
 				if (e.keyCode == 89 && e.ctrlKey)
 					this.toggleCircle('ban', this.mode !== 'ban' && this.active);
+				if (e.keyCode == 87 && e.ctrlKey)
+					this.toggleCircle('smug', this.mode !== 'smug' && this.active);
+				if (e.keyCode == 88 && e.ctrlKey)
+					this.toggleCircle('dereact', this.mode !== 'dereact' && this.active);
 				if(this.mode == 'mute' && +e.key > -1 && +e.key < 10) {
 					if(this.keyBounce)
 						this.muteDuration += '' + e.key;
@@ -219,9 +248,9 @@ module.exports = new Plugin({
 		this.wheeListener = (e) => {
 			if(this.ctrl) {
 				if (event.deltaY < 0) {
-					this.setCircle(+this.getCircle().scale * 1.07);
+					this.setCircle(+this.getCircle().scale * 1.11);
 				}else if(event.deltaY > 0){
-					this.setCircle(+this.getCircle().scale * 0.93);
+					this.setCircle(+this.getCircle().scale * 0.89);
 				}
 				setTimeout(this.highlight.bind(this), 100);
 				e.preventDefault();
@@ -239,7 +268,7 @@ module.exports = new Plugin({
 
 		this.highlight = () => {
 			if(!this.messageDebounce) {
-		var classList = ['delete', 'get-md', 'mute', 'unmute', 'ban']
+		var classList = ['delete', 'get-md', 'mute', 'unmute', 'ban', 'smug', 'dereact']
 			var prevArray = this.messageArray;
 				this.messageArray = Array.prototype.slice.call(this.getMessages(true));
 				if(prevArray){
@@ -331,7 +360,6 @@ module.exports = new Plugin({
 			switch(this.mode) {
 				case 'delete':
 					ids = shuffle(ids);
-					if (!channelId) return;
 					ids.forEach((item, i) => {
 						item.classList.add('tobedel');
 						setTimeout(() => {
@@ -348,39 +376,34 @@ module.exports = new Plugin({
 					navigator.clipboard.writeText(string);
 					break;
 				case 'mute':
-				var users = [];
-					for (var i = 0; i < ids.length; i++) {
-						if(!users.includes(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id))
-							users.push(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id);
-					}
-					users.forEach((item, i) => {
-						setTimeout(() => {
-							this.sM.sendMessage(channelId, {content: `.mute ${item} ${this.muteDuration}m AoE-muted`})
-						}, i*350)
-					})
-					break;
 				case 'unmute':
-				var users = [];
-					for (var i = 0; i < ids.length; i++) {
-						if(!users.includes(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id))
-							users.push(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id);
-					}
-					users.forEach((item, i) => {
+				case 'ban':
+				let message = ({
+						'mute': (userID) => `.mute ${userID} ${this.muteDuration}m AoE-muted`,
+						'unmute': (userID) => `.unmute ${userID} AoE-muted`,
+						'ban': (userID) => `.ban ${userID} AoE-banned`
+					})[this.mode];
+					([...new Set(ids)]).forEach((userID, i) => {
+							userID = userID.__reactInternalInstance$.memoizedProps.children[1].props.message.author.id
+							setTimeout(() => {
+								this.sM.sendMessage(channelId, {content: message(userID)})
+							}, i*350)
+						})
+					break;
+				case 'smug':
+					ids = shuffle(ids);
+					ids.forEach((item, i) => {
 						setTimeout(() => {
-							this.sM.sendMessage(channelId, {content: `.unmute ${item}`})
+							this.reactionModule.addReaction(channelId, item.__reactInternalInstance$.memoizedProps.id, {id: "643603380748419085", name: "KaguyaSmug", animated: false})
 						}, i*350)
 					})
 					break;
-				case 'ban':
-				var users = [];
-					for (var i = 0; i < ids.length; i++) {
-						if(!users.includes(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id))
-							users.push(ids[i].__reactInternalInstance$.memoizedProps.children[1].props.message.author.id);
-					}
-					users.forEach((item, i) => {
+				case 'dereact':
+					ids = shuffle(ids);
+					ids.forEach((item, i) => {
 						setTimeout(() => {
-							this.sM.sendMessage(channelId, {content: `.ban ${item} AoE ban`})
-						}, i*350)
+							this.reactionModule.removeAllReactions(channelId, item.__reactInternalInstance$.memoizedProps.id)
+						}, i*400)
 					})
 					break;
 			}
