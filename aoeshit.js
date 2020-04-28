@@ -74,8 +74,8 @@ module.exports = new Plugin({
 				position: absolute;
 				top: 50%;
 				left: 50%;
-				width: 300px;
-				height: 300px;
+				width: 500px;
+				height: 500px;
 				transform: translate3d(-50%,-50%,0);
 				pointer-events: all;
 			}
