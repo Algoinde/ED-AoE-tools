@@ -325,9 +325,9 @@ module.exports = new Plugin({
 					}
 					item.timerino = setTimeout(() => item.classList.remove(...this.classList), 15000);
 				})
+				this.messageDebounce = true;
+				setTimeout(() => this.messageDebounce = false, 100);
 			}
-			this.messageDebounce = true;
-			setTimeout(() => this.messageDebounce = false, 300);
 		}
 
 		this.setCircle = (scale, x, y, fade, cancel) => {
