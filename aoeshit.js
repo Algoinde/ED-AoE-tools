@@ -17,6 +17,8 @@ module.exports = new Plugin({
 		if(this.circle === undefined) {
 			this.circle = document.createElement('div');
 			this.circle.id = 'aoe_circle';
+			this.circle.innerHTML = '<div></div>'
+			this.circle.circle = this.circle.firstElementChild;
 			this.circle.style.transform = "translateX(0px) translateY(0px) scale(0.5)";
 		let style = document.createElement('style');
 			style.innerHTML = `
@@ -39,37 +41,41 @@ module.exports = new Plugin({
 				height: 917px;
 				display: none;
 				pointer-events: none;
+				overflow: hidden;
+				border-radius: 50%;
 			}
 
-			#aoe_circle:before {
-				content: attr(data-time);
+			#aoe_circle div {
+				transition: filter 0.3s ease;
 				display: block;
 				position: absolute;
-				top: 0;
-				left: 0;
-				right: 0;
-				bottom: 0;
+				top: -1px;
+				left: -1px;
+				right: -1px;
+				bottom: -1px;
 				will-change: transform;
 				background: url(//algoinde.ru/f/aoe.png) 0% 0% / contain no-repeat;
 				animation: rotat 18s infinite linear;
 				display: flex;
 				align-items: center;
-				padding: 0 0 66% 0;
 				justify-content: center;
 				color: white;
 				text-shadow: 0px 0px 10px #005aff, 0px 0px 3px #2590ec, 0px 0px 6px #28bef7, 0px 0px 10px #21a9ea;
 				font-family: 'Rock Salt';
 				font-size: 4rem;
 			}
+			#aoe_circle div:before {
+				content: attr(data-time);
+			}
 
-			#aoe_circle:after {
+			#aoe_circle div:after {
 				content: "";
 				display: block;
 				position: absolute;
 				top: 50%;
 				left: 50%;
-				width: 100px;
-				height: 100px;
+				width: 300px;
+				height: 300px;
 				transform: translate3d(-50%,-50%,0);
 				pointer-events: all;
 			}
@@ -91,12 +97,16 @@ module.exports = new Plugin({
 				}
 			}
 			
-			.aoe-active div[class*="cozyMessage"] {
+			.aoe-active .${EDApi.findModule('cozyMessage').cozyMessage} {
 				transition: text-shadow 0.2s ease, opacity 0.2s ease;
 			}
 			
 			.aoe-active * {
 				cursor: none;
+			}
+
+			.circle-pinned #aoe_circle {
+			    filter: brightness(3);
 			}
 
 			.aoe-active .delete {
@@ -126,13 +136,16 @@ module.exports = new Plugin({
 				text-shadow: 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1), 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1);
 				opacity: 0.6;
 			}
-			.aoe-active[data-aoe-mode="smug"] #aoe_circle:after {
-				background: url(https://cdn.discordapp.com/emojis/643603380748419085.png?v=1) 50% 50% / contain no-repeat;
-				animation: rotat2 18s infinite linear reverse;
+			.aoe-active[data-aoe-mode="smug"] #aoe_circle div:after {
+				background: url(https://cdn.discordapp.com/emojis/643603380748419085.png?v=1) 50% 50% / 50% auto no-repeat;
+				animation: rotat2 9s infinite linear reverse;
 			}
-			.aoe-active .dereact {
+			.aoe-active .dereact .${EDApi.findModule('reactions').reactions} {
 				text-shadow: 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1), 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1);
 				opacity: 0.6;
+			}
+			.aoe-active .dereact .${EDApi.findModule('reaction').reaction}.${EDApi.findModule('reactionMe').reactionMe} {
+    			background-color: rgba(228, 21, 21, 0.3);
 			}
 			`;
 			document.body.appendChild(style);
@@ -152,7 +165,7 @@ module.exports = new Plugin({
 		this.muteDuration = 10;
 		this.classList = ['delete', 'get-md', 'mute', 'unmute', 'ban', 'smug', 'dereact']
 
-	   this.toggleCircle = (mode, force) => {
+	   this.toggleCircle = (mode, force, cancel) => {
 			if(!this.active || force) {
 				this.active = true;
 				this.mode = mode;
@@ -161,37 +174,37 @@ module.exports = new Plugin({
 				this.circle.style.opacity = 0.7;
 				this.circle.style.display = 'block';
 				this.setCircle(false, this.x, this.y)
-				this.circle.setAttribute('data-time', '');
+				this.circle.circle.setAttribute('data-time', '');
 				this.highlight();
 				switch(mode) {
 					case 'delete':
-						this.circle.style.filter = "hue-rotate(-213deg)";
+						this.circle.circle.style.filter = "hue-rotate(-213deg)";
 						break;
 					case 'get-md':
-						this.circle.style.filter = "hue-rotate(10deg)";
+						this.circle.circle.style.filter = "hue-rotate(10deg)";
 						break;
 					case 'mute':
-						this.circle.style.filter = "hue-rotate(80deg)";
-						this.circle.setAttribute('data-time', '10');
+						this.circle.circle.style.filter = "hue-rotate(80deg)";
+						this.circle.circle.setAttribute('data-time', '10');
 						break;
 					case 'unmute':
-						this.circle.style.filter = "hue-rotate(80deg) invert()";
+						this.circle.circle.style.filter = "hue-rotate(-215deg) invert()";
 						break;
 					case 'ban':
-						this.circle.style.filter = "invert() brightness(0.1)";
+						this.circle.circle.style.filter = "invert() brightness(0.4)";
 						break;
 					case 'smug':
-						this.circle.style.filter = "saturate(0) brightness(1.6)";
+						this.circle.circle.style.filter = "saturate(0) brightness(1.6)";
 						break;
 					case 'dereact':
-						this.circle.style.filter = "invert() saturate(0.2) brightness(1.6)";
+						this.circle.circle.style.filter = "invert() saturate(0.2) brightness(1.6)";
 						break;
 					default:
-						this.circle.style.filter = "";
+						this.circle.circle.style.filter = "";
 				}
 			}else{
 				this.mode = null;
-				this.setCircle(0.5, false, false, true);
+				this.setCircle(0.5, false, false, true, cancel);
 				this.circle.style.opacity = 0;
 				document.removeEventListener("mousemove", this.moveListener);
 				this.mouseListened = false;
@@ -202,22 +215,33 @@ module.exports = new Plugin({
 			}
 		}
 
+		this.pinCircle = (b) => {
+			this.pinned = !!b;
+			document.body.classList[['remove','add'][+b]]('circle-pinned');
+			if(b == false) {
+				this.circle.style.transition = "";
+			}
+		}
+
 		this.keyListener = (e) => {
+			this.ctrl = e.ctrlKey == true && e.shiftKey == true;
+
 			if(e.type == 'keydown') {
-				if (e.keyCode == 68 && e.ctrlKey)
-					this.toggleCircle('delete', this.mode !== 'delete' && this.active);
-				if (e.keyCode == 83 && e.ctrlKey)
-					this.toggleCircle('get-md', this.mode !== 'get-md' && this.active);
-				if (e.keyCode == 77 && e.ctrlKey)
-					this.toggleCircle('mute', this.mode !== 'mute' && this.active);
-				if (e.keyCode == 85 && e.ctrlKey)
-					this.toggleCircle('unmute', this.mode !== 'unmute' && this.active);
-				if (e.keyCode == 89 && e.ctrlKey)
-					this.toggleCircle('ban', this.mode !== 'ban' && this.active);
-				if (e.keyCode == 87 && e.ctrlKey)
-					this.toggleCircle('smug', this.mode !== 'smug' && this.active);
-				if (e.keyCode == 88 && e.ctrlKey)
-					this.toggleCircle('dereact', this.mode !== 'dereact' && this.active);
+				var mode = ({
+					68:	'delete', //D
+					83:	'get-md', //S
+					77:	'mute', //M
+					71:	'unmute', //G
+					89:	'ban', //Y
+					87:	'smug', //W
+					88:	'dereact', //X
+				})[e.keyCode];
+
+				if(this.ctrl && mode) {
+					this.toggleCircle(mode, this.mode != mode && this.active, this.mode == mode && this.active)
+					e.preventDefault();
+				}
+
 				if(this.mode == 'mute' && +e.key > -1 && +e.key < 10) {
 					if(this.keyBounce)
 						this.muteDuration += '' + e.key;
@@ -225,43 +249,45 @@ module.exports = new Plugin({
 						this.muteDuration = e.key;
 					clearTimeout(this.keyBounce);
 					this.keyBounce = setTimeout(() => this.keyBounce = null, 1000);
-					this.circle.setAttribute('data-time', this.muteDuration);
+					this.circle.firstElementChild.setAttribute('data-time', this.muteDuration);
 					e.preventDefault();
 				}
-				if (e.ctrlKey) {
+
+				if(this.ctrl && !this.mouseListened) {
 					if(!this.mouseListened) document.addEventListener("mousemove", this.moveListener);
 					this.mouseListened = true;
 				}
 
 			}
-
-			if (e.ctrlKey == true && this.active) {
-				this.ctrl = true;
-			}else{
-				this.ctrl = false;
-			}
 		}
 
 		this.clickListener = (e) => {
-			if(this.active) {
-				if(this.mode == 'ban') {
-					if(!this.banConfirmation)
-						this.banConfirmation = 1;
-					else
-						this.banConfirmation++;
-					if(this.banConfirmation < 3){
-						e.preventDefault();
-						return;
-					}else{
-						this.banConfirmation = 0;
-					}
-				}
-				this.applyAction();
+			if(!this.active) return;
+			if(e.type == 'mousedown') {
+				var time = ({
+					'get-md': 1,
+					'smug': 200,
+					'dereact': 800,
+					'delete': 1000,
+					'mute': 1000,
+					'unmute': 1000,
+					'ban': 3000,
+				})[this.mode];
+				this.circle.style.transition += `filter ${time/1000}s linear`;
+				this.pinCircle(true);
+				this.castTimer = setTimeout(() => {
+					this.pinCircle(false);
+					this.applyAction();
+				}, time);
+				e.preventDefault();
+			}else if(this.active && e.type == 'mouseup') {
+				clearTimeout(this.castTimer);
+				this.pinCircle(false);
 				e.preventDefault();
 			}
 		}
 		this.wheeListener = (e) => {
-			if(this.ctrl) {
+			if(this.active) {
 				if (event.deltaY < 0) {
 					this.setCircle(+this.getCircle().scale * 1.11);
 				}else if(event.deltaY > 0){
@@ -276,7 +302,7 @@ module.exports = new Plugin({
 		this.moveListener = (e) => {
 			this.x = e.pageX;
 			this.y = e.pageY;
-			if(!this.active) return;
+			if(!this.active || this.pinned) return;
 			this.setCircle(undefined, e.pageX, e.pageY);
 			this.highlight();
 		}
@@ -297,20 +323,23 @@ module.exports = new Plugin({
 					if(item.timerino) {
 						clearTimeout(item.timerino);
 					}
-					item.timerino = setTimeout(() => item.classList.remove(...this.classList), 4000);
+					item.timerino = setTimeout(() => item.classList.remove(...this.classList), 15000);
 				})
 			}
 			this.messageDebounce = true;
 			setTimeout(() => this.messageDebounce = false, 300);
 		}
 
-		this.setCircle = (scale, x, y, fade) => {
+		this.setCircle = (scale, x, y, fade, cancel) => {
 		let values = this.getCircle();
 		let rect = this.circle.getBoundingClientRect();
 			if(scale) {
 				if(fade) {
 				var oldScale = values.scale;
-					scale = +values.scale + scale;
+					if(cancel)
+						scale = +values.scale * scale;
+					else
+						scale = +values.scale + scale;
 					this.circle.style.transition = "transform 0.1s ease, opacity 0.1s ease";
 				}else{
 					this.circle.style.transition = "transform 0.1s ease-in-out";
@@ -336,6 +365,7 @@ module.exports = new Plugin({
 		}
 
 		this.getMessages = (getElements) => {
+			if(this.pinned) return this.messagesCache;
 		let rect = this.circle.getBoundingClientRect()
 		let up = Math.max(0, rect.top) + rect.height * 0.1;
 		let down = rect.height + rect.top - rect.height * 0.1;
@@ -343,6 +373,11 @@ module.exports = new Plugin({
 		let messages = [];
 			for(var y=up; y<down; y+=20) {
 			let elm = document.elementFromPoint(x,y);
+				if(elm == this.circle) {
+					y-=20;
+					x+=50;
+					continue;
+				}
 				if(elm && elm.closest) {
 					elm = elm.closest(this.messageClass);
 				}else{
@@ -362,6 +397,7 @@ module.exports = new Plugin({
 					}
 				}
 			}
+			this.messagesCache = messages;
 			return messages;
 		}
 
@@ -413,6 +449,7 @@ module.exports = new Plugin({
 					})
 					break;
 				case 'dereact':
+					ids = ids.filter(msg => msg.__reactInternalInstance$.return.return.memoizedProps.message.reactions.length > 0);
 					ids = shuffle(ids);
 					ids.forEach((item, i) => {
 						setTimeout(() => {
@@ -426,13 +463,15 @@ module.exports = new Plugin({
 
 		document.addEventListener("keydown", this.keyListener);
 		document.addEventListener("keyup", this.keyListener);
-		document.addEventListener("click", this.clickListener);
+		document.addEventListener("mousedown", this.clickListener);
+		document.addEventListener("mouseup", this.clickListener);
 		document.addEventListener("wheel", this.wheeListener);
 	},
 	unload: async () => {
 		document.removeEventListener("keydown", this.keyListener);
 		document.removeEventListener("keyup", this.keyListener);
-		document.removeEventListener("click", this.clickListener);
+		document.removeEventListener("mousedown", this.clickListener);
+		document.removeEventListener("mouseup", this.clickListener);
 		document.removeEventListener("wheel", this.wheeListener);
 		document.removeEventListener("mousemove", this.moveListener);
 	}
