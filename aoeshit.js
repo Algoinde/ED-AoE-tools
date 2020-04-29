@@ -136,10 +136,6 @@ module.exports = new Plugin({
 				text-shadow: 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1), 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1);
 				opacity: 0.6;
 			}
-			.aoe-active[data-aoe-mode="smug"] #aoe_circle div:after {
-				background: url(https://cdn.discordapp.com/emojis/643603380748419085.png?v=1) 50% 50% / 50% auto no-repeat;
-				animation: rotat2 9s infinite linear reverse;
-			}
 			.aoe-active .dereact .${EDApi.findModule('reactions').reactions} {
 				text-shadow: 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1), 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1);
 				opacity: 0.6;
@@ -149,6 +145,7 @@ module.exports = new Plugin({
 			}
 			`;
 			document.body.appendChild(style);
+			this.dynamicStyle = document.body.appendChild(document.createElement('style'));
 			this.circle = document.body.appendChild(this.circle);
 		}
 
@@ -195,6 +192,11 @@ module.exports = new Plugin({
 						break;
 					case 'smug':
 						this.circle.circle.style.filter = "saturate(0) brightness(1.6)";
+					var emote = document.querySelector('.'+EDApi.findModule('textAreaSlate').textArea+' .emoji')?document.querySelector('.'+EDApi.findModule('textAreaSlate').textArea+' .emoji').src:'https://cdn.discordapp.com/emojis/643603380748419085.png';
+						this.dynamicStyle.innerHTML = `
+							.aoe-active[data-aoe-mode="smug"] #aoe_circle div:after {
+							background: url(${emote}) 50% 50% / 50% auto no-repeat;
+							animation: rotat2 9s infinite linear reverse;`
 						break;
 					case 'dereact':
 						this.circle.circle.style.filter = "invert() saturate(0.2) brightness(1.6)";
@@ -442,9 +444,20 @@ module.exports = new Plugin({
 					break;
 				case 'smug':
 					ids = shuffle(ids);
+				var emote = document.querySelector('.'+EDApi.findModule('textAreaSlate').textArea+' .emoji')
+					if(!emote){
+						emote = {id: "643603380748419085", name: "KaguyaSmug", animated: false}
+					} else {
+					var props = emote.__reactInternalInstance$.return.memoizedProps;
+						emote = {
+							id: props.emojiId,
+							name: props.emojiName.replace(/:/g, ''),
+							animated: props.animated
+						}
+					}
 					ids.forEach((item, i) => {
 						setTimeout(() => {
-							this.reactionModule.addReaction(channelId, item.__reactInternalInstance$.memoizedProps.id, {id: "643603380748419085", name: "KaguyaSmug", animated: false})
+							this.reactionModule.addReaction(channelId, item.__reactInternalInstance$.memoizedProps.id, emote)
 						}, i*350)
 					})
 					break;
