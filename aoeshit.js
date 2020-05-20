@@ -22,6 +22,14 @@ module.exports = new Plugin({
 			this.circle.style.transform = "translateX(0px) translateY(0px) scale(0.5)";
 		let style = document.createElement('style');
 			style.innerHTML = `
+			.scrollableContainer-2NUZem {
+				max-height: 500px;
+			}
+
+			.channelTextArea-2VhZ6z {
+				background: rgba(0,0,0,0.3);
+			}
+
 			/* latin */
 			@font-face {
 			  font-family: 'Rock Salt';
@@ -77,7 +85,6 @@ module.exports = new Plugin({
 				width: 500px;
 				height: 500px;
 				transform: translate3d(-50%,-50%,0);
-				pointer-events: all;
 			}
 
 			@keyframes rotat {
@@ -101,8 +108,12 @@ module.exports = new Plugin({
 				transition: text-shadow 0.2s ease, opacity 0.2s ease;
 			}
 			
-			.aoe-active * {
+			.aoe-active {
 				cursor: none;
+			}
+
+			.aoe-active #app-mount{
+				pointer-events: none;
 			}
 
 			.circle-pinned #aoe_circle {
@@ -140,7 +151,7 @@ module.exports = new Plugin({
 				text-shadow: 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1), 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1);
 				opacity: 0.6;
 			}
-			.aoe-active .dereact .${EDApi.findModule('reaction').reaction}.${EDApi.findModule('reactionMe').reactionMe} {
+			.aoe-active .dereact .${EDApi.findModule('reactions').reactions} .${EDApi.findModule('reaction').reaction} {
     			background-color: rgba(228, 21, 21, 0.3);
 			}
 			`;
@@ -167,7 +178,8 @@ module.exports = new Plugin({
 				this.active = true;
 				this.mode = mode;
 				document.body.classList.add('aoe-active');
-				document.body.setAttribute('data-aoe-mode',this.mode); 
+				document.documentElement.style.cursor = 'none';
+				document.body.setAttribute('data-aoe-mode',this.mode);
 				this.circle.style.opacity = 0.7;
 				this.circle.style.display = 'block';
 				this.setCircle(false, this.x, this.y)
@@ -210,6 +222,7 @@ module.exports = new Plugin({
 				this.circle.style.opacity = 0;
 				document.removeEventListener("mousemove", this.moveListener);
 				this.mouseListened = false;
+				document.documentElement.style.cursor = '';
 				document.body.classList.remove('aoe-active');
 				document.body.setAttribute('data-aoe-mode',"");
 				this.active = false;
@@ -270,7 +283,7 @@ module.exports = new Plugin({
 					'get-md': 1,
 					'smug': 200,
 					'dereact': 800,
-					'delete': 1000,
+					'delete': 500,
 					'mute': 1000,
 					'unmute': 1000,
 					'ban': 3000,
@@ -385,17 +398,17 @@ module.exports = new Plugin({
 				}else{
 					continue;
 				}
-				if(getElements) {
-					if(elm
-					&& elm.__reactInternalInstance$
-					&& elm.__reactInternalInstance$.memoizedProps
-					&& elm.__reactInternalInstance$.memoizedProps.id
-					&& !messages.includes(elm)) {
+				if(elm
+				&& elm.__reactInternalInstance$
+				&& elm.__reactInternalInstance$.return
+				&& elm.__reactInternalInstance$.return.return
+				&& elm.__reactInternalInstance$.return.return.key) {
+				var id = elm.__reactInternalInstance$.return.return.key;
+					if(messages.includes(elm) || messages.includes(id)) continue;
+					if(getElements) {
 						messages.push(elm);
-					}
-				}else{
-					if(elm && elm.__reactInternalInstance$.memoizedProps.id && !messages.includes(elm.__reactInternalInstance$.memoizedProps.id)) {
-						messages.push(elm.__reactInternalInstance$.memoizedProps.id);
+					}else{
+						messages.push(id);
 					}
 				}
 			}
@@ -415,7 +428,7 @@ module.exports = new Plugin({
 					ids.forEach((item, i) => {
 						item.classList.add('tobedel');
 						setTimeout(() => {
-							this.dM.deleteMessage(channelId, item.__reactInternalInstance$.memoizedProps.id)
+							this.dM.deleteMessage(channelId, item.__reactInternalInstance$.return.return.key)
 						}, i*350)
 					})
 					break;
@@ -444,20 +457,26 @@ module.exports = new Plugin({
 					break;
 				case 'smug':
 					ids = shuffle(ids);
-				var emote = document.querySelector('.'+EDApi.findModule('textAreaSlate').textArea+' .emoji')
-					if(!emote){
+				var emoteSource = document.querySelector('.'+EDApi.findModule('textAreaSlate').textArea+' .emoji')
+				var emote;
+					if(!emoteSource){
 						emote = {id: "643603380748419085", name: "KaguyaSmug", animated: false}
 					} else {
-					var props = emote.__reactInternalInstance$.return.memoizedProps;
+					var props = emoteSource.__reactInternalInstance$.return.memoizedProps;
 						emote = {
 							id: props.emojiId,
 							name: props.emojiName.replace(/:/g, ''),
 							animated: props.animated
 						}
+						if(emoteSource.__reactInternalInstance$.memoizedProps.src.indexOf('.svg') > -1) {
+							delete emote.id;
+							emote.name = '\N{'+emote.name.split('_').join(' ').toUpperCase()+'}';
+						}
+
 					}
 					ids.forEach((item, i) => {
 						setTimeout(() => {
-							this.reactionModule.addReaction(channelId, item.__reactInternalInstance$.memoizedProps.id, emote)
+							this.reactionModule.addReaction(channelId, item.__reactInternalInstance$.return.return.key, emote)
 						}, i*350)
 					})
 					break;
@@ -466,7 +485,7 @@ module.exports = new Plugin({
 					ids = shuffle(ids);
 					ids.forEach((item, i) => {
 						setTimeout(() => {
-							this.reactionModule.removeAllReactions(channelId, item.__reactInternalInstance$.memoizedProps.id)
+							this.reactionModule.removeAllReactions(channelId, item.__reactInternalInstance$.return.return.key)
 						}, i*400)
 					})
 					break;
@@ -479,6 +498,8 @@ module.exports = new Plugin({
 		document.addEventListener("mousedown", this.clickListener);
 		document.addEventListener("mouseup", this.clickListener);
 		document.addEventListener("wheel", this.wheeListener);
+
+		window.ED.plugins.aoeshit.self = this;
 	},
 	unload: async () => {
 		document.removeEventListener("keydown", this.keyListener);
