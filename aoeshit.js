@@ -20,6 +20,9 @@ module.exports = new Plugin({
 			this.circle.innerHTML = '<div></div>'
 			this.circle.circle = this.circle.firstElementChild;
 			this.circle.style.transform = "translateX(0px) translateY(0px) scale(0.5)";
+			this.circle._x = 0;
+			this.circle._y = 0;
+			this.circle._scale = 0.5;
 		let style = document.createElement('style');
 			style.innerHTML = `
 			.scrollableContainer-2NUZem {
@@ -114,6 +117,9 @@ module.exports = new Plugin({
 
 			.aoe-active #app-mount{
 				pointer-events: none;
+			}
+			.aoe-active .${EDApi.findModule('cozyMessage').cozyMessage} {
+				pointer-events: all;
 			}
 
 			.circle-pinned #aoe_circle {
@@ -291,8 +297,8 @@ module.exports = new Plugin({
 				this.circle.style.transition += `filter ${time/1000}s linear`;
 				this.pinCircle(true);
 				this.castTimer = setTimeout(() => {
-					this.pinCircle(false);
 					this.applyAction();
+					this.pinCircle(false);
 				}, time);
 				e.preventDefault();
 			}else if(this.active && e.type == 'mouseup') {
@@ -319,7 +325,10 @@ module.exports = new Plugin({
 			this.y = e.pageY;
 			if(!this.active || this.pinned) return;
 			this.setCircle(undefined, e.pageX, e.pageY);
-			this.highlight();
+			setTimeout(this.highlight(),1);
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			e.stopPropagation();
 		}
 
 		this.highlight = () => {
@@ -338,7 +347,7 @@ module.exports = new Plugin({
 					if(item.timerino) {
 						clearTimeout(item.timerino);
 					}
-					item.timerino = setTimeout(() => item.classList.remove(...this.classList), 15000);
+					//item.timerino = setTimeout(() => item.classList.remove(...this.classList), 15000);
 				})
 				this.messageDebounce = true;
 				setTimeout(() => this.messageDebounce = false, 100);
@@ -368,14 +377,16 @@ module.exports = new Plugin({
 			if(x) values.x = x - 917*0.5;
 			if(y) values.y = y - 917*0.5;
 			this.circle.style.transform = `translateX(${values.x}px) translateY(${values.y}px) scale(${values.scale})`;
+			this.circle._x = values.x;
+			this.circle._y = values.y;
+			this.circle._scale =  values.scale;
 		}
 
 		this.getCircle = () => {
-			let props = this.circle.style.transform.split(' ');
 			return {
-				x: parseInt(props[0].split('(')[1].split(')')[0]),
-				y: parseInt(props[1].split('(')[1].split(')')[0]),
-				scale: props[2].split('(')[1].split(')')[0],
+				x: this.circle._x,
+				y: this.circle._y,
+				scale: this.circle._scale
 			};
 		}
 
@@ -384,15 +395,15 @@ module.exports = new Plugin({
 		let rect = this.circle.getBoundingClientRect()
 		let up = Math.max(0, rect.top) + rect.height * 0.1;
 		let down = rect.height + rect.top - rect.height * 0.1;
-		let x = Math.round(document.querySelector(this.chatContentClass).getBoundingClientRect().left) + 20;
+		let x = Math.round(document.querySelector(this.chatContentClass).getBoundingClientRect().left) + 40;
 		let messages = [];
-			for(var y=up; y<down; y+=20) {
+			for(var y=up; y<down; y+=24) {
 			let elm = document.elementFromPoint(x,y);
-				if(elm == this.circle) {
-					y-=20;
-					x+=50;
-					continue;
-				}
+				// if(elm == this.circle) {
+				// 	y-=20;
+				// 	x+=50;
+				// 	continue;
+				// }
 				if(elm && elm.closest) {
 					elm = elm.closest(this.messageClass);
 				}else{
@@ -413,6 +424,7 @@ module.exports = new Plugin({
 				}
 			}
 			this.messagesCache = messages;
+
 			return messages;
 		}
 
