@@ -108,7 +108,7 @@ module.exports = new Plugin({
 			}
 			
 			.aoe-active .${EDApi.findModule('cozyMessage').cozyMessage} {
-				transition: text-shadow 0.2s ease, opacity 0.2s ease;
+				transition: text-shadow 0.2s ease, opacity 0.2s ease, box-shadow: 0.2s ease;
 			}
 			
 			.aoe-active {
@@ -127,35 +127,41 @@ module.exports = new Plugin({
 			}
 
 			.aoe-active .delete {
+				box-shadow: 0px 0px 0px 200px inset rgba(200,0,0,0.13); 
 				text-shadow: 1px 1px 4px rgba(200,0,0,1), -1px -1px 4px rgba(200,0,0,1), 1px 1px 4px rgba(200,0,0,1), -1px -1px 4px rgba(200,0,0,1);
-				opacity: 0.5;
+				opacity: 0.8;
 			}
 			.tobedel {
 				background-color: rgba(100,0,0,0.5);
 			}
 			.aoe-active .get-md {
+				box-shadow: 0px 0px 0px 200px inset rgba(0,120,255,0.13); 
 				text-shadow: 1px 1px 4px rgba(0,120,255,1), -1px -1px 4px rgba(0,120,255,1), 1px 1px 4px rgba(0,120,255,1), -1px -1px 4px rgba(0,120,255,1);
-				opacity: 0.6;
+				opacity: 0.8;
 			}
 			.aoe-active .mute {
+				box-shadow: 0px 0px 0px 200px inset rgba(203,6,239,0.13); 
 				text-shadow: 1px 1px 4px rgba(203,6,239,1), -1px -1px 4px rgba(203,6,239,1), 1px 1px 4px rgba(203,6,239,1), -1px -1px 4px rgba(203,6,239,1);
-				opacity: 0.6;
+				opacity: 0.8;
 			}
 			.aoe-active .unmute {
+				box-shadow: 0px 0px 0px 200px inset rgba(0,200,0,0.13); 
 				text-shadow: 1px 1px 4px rgba(0,200,0,1), -1px -1px 4px rgba(0,200,0,1), 1px 1px 4px rgba(0,200,0,1), -1px -1px 4px rgba(0,200,0,1);
-				opacity: 0.6;
+				opacity: 0.8;
 			}
 			.aoe-active .ban {
+				box-shadow: 0px 0px 0px 200px inset rgba(50,0,0,0.13); 
 				text-shadow: 1px 1px 4px rgba(50,0,0,1), -1px -1px 4px rgba(50,0,0,1), 1px 1px 4px rgba(50,0,0,1), -1px -1px 4px rgba(50,0,0,1);
-				opacity: 0.6;
+				opacity: 0.8;
 			}
 			.aoe-active .smug {
+				box-shadow: 0px 0px 0px 200px inset rgba(150,150,150,0.13); 
 				text-shadow: 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1), 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1);
-				opacity: 0.6;
+				opacity: 0.8;
 			}
 			.aoe-active .dereact .${EDApi.findModule('reactions').reactions} {
 				text-shadow: 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1), 1px 1px 4px rgba(255,150,150,1), -1px -1px 4px rgba(255,150,150,1);
-				opacity: 0.6;
+				opacity: 0.8;
 			}
 			.aoe-active .dereact .${EDApi.findModule('reactions').reactions} .${EDApi.findModule('reaction').reaction} {
     			background-color: rgba(228, 21, 21, 0.3);
