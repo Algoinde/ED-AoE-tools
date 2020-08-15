@@ -159,6 +159,11 @@ module.exports = new Plugin({
 				text-shadow: 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1), 1px 1px 4px rgba(150,150,150,1), -1px -1px 4px rgba(150,150,150,1);
 				opacity: 0.8;
 			}
+			.aoe-active .hide {
+				box-shadow: 0px 0px 0px 200px inset rgba(200,150,150,0.13); 
+				text-shadow: 1px 1px 4px rgba(200,150,150,1), -1px -1px 4px rgba(200,150,150,1), 1px 1px 4px rgba(200,150,150,1), -1px -1px 4px rgba(200,150,150,1);
+				opacity: 0.8;
+			}
 			.aoe-active .idban {
 				box-shadow: 0px 0px 0px 200px inset rgba(90,0,0,0.13); 
 				text-shadow: 1px 1px 4px rgba(90,0,0,1), -1px -1px 4px rgba(90,0,0,1), 1px 1px 4px rgba(90,0,0,1), -1px -1px 4px rgba(90,0,0,1);
@@ -177,7 +182,13 @@ module.exports = new Plugin({
 			this.circle = document.body.appendChild(this.circle);
 		}
 
-		this.cM = window.EDApi.findModule('getChannelId');
+		// this.cM = window.EDApi.findModule('getChannelId');
+		this.cM = {
+			getChannelId: function() {
+				if(!this.modeSelected) this.modeSelected = '.'+window.EDApi.findModule('modeSelected').modeSelected;
+				return document.querySelector(this.modeSelected).__reactInternalInstance$.return.return.memoizedProps.channel.id;
+			}
+		}
 		this.dM = window.EDApi.findModule('deleteMessage');
 		this.ewM = window.EDApi.findModule('embedWrapper');
 		this.sM = window.EDApi.findModule('sendMessage');
@@ -189,7 +200,7 @@ module.exports = new Plugin({
 			return this.error('Aborted loading - Failed to find required modules!');
 		}
 		this.muteDuration = 10;
-		this.classList = ['delete', 'get-md', 'mute', 'unmute', 'ban', 'idban', 'smug', 'dereact']
+		this.classList = ['delete', 'get-md', 'mute', 'unmute', 'ban', 'idban', 'smug', 'dereact', 'hide']
 
 	   this.toggleCircle = (mode, force, cancel) => {
 			if(!this.active || force) {
@@ -222,6 +233,9 @@ module.exports = new Plugin({
 						break;
 					case 'idban':
 						this.circle.circle.style.filter = "invert() brightness(0.6)";
+						break;
+					case 'hide':
+						this.circle.circle.style.filter = "hue-rotate(-213deg) brightness(1.4)";
 						break;
 					case 'smug':
 						this.circle.circle.style.filter = "saturate(0) brightness(1.6)";
@@ -284,6 +298,7 @@ module.exports = new Plugin({
 					89:	'ban', //Y
 					76:	'idban', //Y
 					87:	'smug', //W
+					82:	'hide', //R
 					88:	'dereact', //X
 				})[e.keyCode];
 
@@ -317,6 +332,7 @@ module.exports = new Plugin({
 			if(e.type == 'mousedown') {
 				var time = ({
 					'get-md': 60,
+					'hide': 100,
 					'smug': 200,
 					'dereact': 500,
 					'delete': 300,
@@ -475,6 +491,11 @@ module.exports = new Plugin({
 						}, i*350)
 					})
 					break;
+				case 'hide':
+					ids.forEach((item, i) => {
+						item.parentNode.removeChild(item);
+					})
+					break;
 				case 'get-md':
 				var string = '';
 					for (var i = 0; i < ids.length; i++) {
@@ -507,7 +528,7 @@ module.exports = new Plugin({
 					string = string.split('\n');
 					string.forEach((userID, i) => {
 							setTimeout(() => {
-								this.sM.sendMessage(channelId, {content: '.kick ' + userID + ' AoE ID-ban'})
+								this.sM.sendMessage(channelId, {content: '.ban ' + userID + ' AoE ID-ban'})
 							}, i*350)
 						})
 					break;
@@ -565,9 +586,11 @@ module.exports = new Plugin({
 					})
 
 					queue.forEach((pair, i) => {
+					var random = this.randomIntFromInterval(800, 1200);
 						setTimeout(() => {
 						this.reactionModule.addReaction(channelId, pair[0].__reactInternalInstance$.return.return.key, pair[1])
-						}, i*this.randomIntFromInterval(500, 1000))
+						}, i*random)
+						console.log(pair[1], random)
 					})
 					
 					break;
