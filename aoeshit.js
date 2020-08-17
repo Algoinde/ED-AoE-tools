@@ -186,7 +186,7 @@ module.exports = new Plugin({
 		this.cM = {
 			getChannelId: function() {
 				if(!this.modeSelected) this.modeSelected = '.'+window.EDApi.findModule('modeSelected').modeSelected;
-				return document.querySelector(this.modeSelected).__reactInternalInstance$.return.return.memoizedProps.channel.id;
+				return document.querySelector(this.modeSelected).__reactInternalInstance$.return.memoizedProps.channel.id;
 			}
 		}
 		this.dM = window.EDApi.findModule('deleteMessage');
