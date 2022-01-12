@@ -1,0 +1,17 @@
+{
+  "title": "Testing",
+  "description": "a",
+  "artist": "a",
+  "author": "a",
+  "cover": "aaaa",
+  "chapters": {
+    "1": {
+      "title": "1",
+      "volume": "1",
+      "last_updated": "1641958742",
+      "groups": {
+        "1111": "/proxy/api/imgur/chapter/BuaLGul"
+      }
+    }
+  }
+}
